@@ -1,0 +1,9 @@
+[package]
+org = "bcentralintegration1"
+name = "sample_connector"
+version = "0.1.0"
+authors = ["Ballerina"]
+export = ["sample_connector", "sample_connector.module1", "sample_connector.module2"]
+keywords = ["Test"]
+icon = "icon.png"
+license = ["Apache-2.0"]
