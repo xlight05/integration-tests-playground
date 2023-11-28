@@ -12,14 +12,12 @@ on:
         - dev
         - stage
         - prod
-  repository_dispatch:
-    types: [dev-test, stage-test, prod-test]
   schedule:
     - cron:  '0 6 * * *'
 
 jobs:
   dev-setup:
-    if: ${{ github.event.inputs.environment == 'dev' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'dev' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,7 +33,7 @@ jobs:
     outputs:
       matrix: ${{ steps.write.outputs.test }}
   dev-push:
-    if: ${{ github.event.inputs.environment == 'dev' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'dev' }}
     needs: dev-setup
     runs-on: ubuntu-latest
     strategy:
@@ -68,7 +66,7 @@ jobs:
           args:
             push
   dev-test:
-    if: ${{ github.event.inputs.environment == 'dev' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'dev' }}
     needs: dev-push
     runs-on: ubuntu-latest
     steps:
@@ -85,7 +83,7 @@ jobs:
           args:
             test
   dev-cleanup:
-    if: ${{ github.event.inputs.environment == 'dev' && always() }}
+    if: ${{ github.event_name == 'schedule' || (github.event.inputs.environment == 'dev' && always()) }}
     needs: [dev-push,dev-test]
     runs-on: ubuntu-latest
     steps:
@@ -107,7 +105,7 @@ jobs:
 
         popd
   stage-setup:
-    if: ${{ github.event.inputs.environment == 'stage' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'stage' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -123,7 +121,7 @@ jobs:
     outputs:
       matrix: ${{ steps.write.outputs.test }}
   stage-push:
-    if: ${{ github.event.inputs.environment == 'stage' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'stage' }}
     needs: stage-setup
     runs-on: ubuntu-latest
     strategy:
@@ -156,7 +154,7 @@ jobs:
           args:
             push
   stage-test:
-    if: ${{ github.event.inputs.environment == 'stage' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'stage' }}
     needs: stage-push
     runs-on: ubuntu-latest
     steps:
@@ -173,7 +171,7 @@ jobs:
           args:
             test
   stage-cleanup:
-    if: ${{ github.event.inputs.environment == 'stage' && always() }}
+    if: ${{ github.event_name == 'schedule' || (github.event.inputs.environment == 'stage' && always()) }}
     needs: [stage-push,stage-test]
     runs-on: ubuntu-latest
     steps:
@@ -189,7 +187,92 @@ jobs:
         for d in */ ; do
           pushd $d
           connectorName="$d"
-          curl -X POST -H "Accept: application/vnd.github.v3+json"  -H "authorization: Bearer ${{ secrets.PAT_TOKEN }}" 'https://api.github.com/repos/wso2-enterprise/ballerina-registry/actions/workflows/delete_package_staging/dispatches' -d '{"ref": "main", "inputs": {"orgName": "bcentralintegration1","packageName":"'$connectorName'","version":"0.1.0"}}'
+          curl -X POST -H "Accept: application/vnd.github.v3+json"  -H "authorization: Bearer ${{ secrets.PAT_TOKEN }}" 'https://api.github.com/repos/wso2-enterprise/ballerina-registry/actions/workflows/delete_package_staging.yml/dispatches' -d '{"ref": "main", "inputs": {"orgName": "bcentralintegration1","packageName":"'$connectorName'","version":"0.1.0"}}'
+          popd
+        done
+
+        popd
+  prod-setup:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'prod' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+      - name: Setup environments
+        id: write
+        run: |
+          cd tests/integration_tests/test_packages
+          tests=$(ls -d */ | cut -f1 -d'/' | jq -R -s -c 'split("\n")[:-1]')
+          echo "::set-output name=test::${tests}"
+    outputs:
+      matrix: ${{ steps.write.outputs.test }}
+  prod-push:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'prod' }}
+    needs: prod-setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test_name: ${{ fromJson(needs.prod-setup.outputs.matrix) }}
+    env:
+      TEST_NAME: "${{ matrix.test_name }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+      - name: Build Package
+        uses: ballerina-platform/ballerina-action@master
+        env:
+          WORKING_DIR: tests/integration_tests/test_packages/${{ matrix.test_name }}
+          BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.PROD_TEST_ORG_TOKEN }}
+        with:
+          args:
+            pack
+      - name: Push Package
+        uses: ballerina-platform/ballerina-action@master
+        env:
+          WORKING_DIR: tests/integration_tests/test_packages/${{ matrix.test_name }}
+          BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.PROD_TEST_ORG_TOKEN }}
+        with:
+          args:
+            push
+  prod-test:
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.environment == 'prod' }}
+    needs: prod-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+      - name: Execute tests
+        uses: ballerina-platform/ballerina-action@master
+        env:
+          WORKING_DIR: tests/integration_tests/test_suite
+        with:
+          args:
+            test
+  prod-cleanup:
+    if: ${{ github.event_name == 'schedule' || (github.event.inputs.environment == 'prod' && always()) }}
+    needs: [prod-push,prod-test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: prod
+    - name: Cleanup Packages
+      shell: bash
+      run: |
+        pushd tests/integration_tests/test_packages
+          
+        for d in */ ; do
+          pushd $d
+          connectorName="$d"
+          curl -X POST -H "Accept: application/vnd.github.v3+json"  -H "authorization: Bearer ${{ secrets.PAT_TOKEN }}" 'https://api.github.com/repos/wso2-enterprise/ballerina-registry/actions/workflows/delete_package_prod.yml/dispatches' -d '{"ref": "main", "inputs": {"orgName": "bcentralintegration1","packageName":"'$connectorName'","version":"0.1.0"}}'
           popd
         done
 
