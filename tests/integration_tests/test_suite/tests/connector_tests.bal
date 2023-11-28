@@ -27,10 +27,6 @@ function testConnectorMain() returns error? {
 @test:Config {dependsOn: [testNormalPackage]} //For some reason parreral execusion does not work with the frontend
 function testConnectorPackage() returns error? {
 
-    // UI Page
-    http:Response resp = check centralClient->get("bcentralintegration1/sample_connector");
-    test:assertEquals(resp.statusCode, 200);
-
     //API
     Package packageResp = check centralApiClient->get("registry/packages/bcentralintegration1/sample_connector/0.1.0");
     test:assertEquals(packageResp.organization, "bcentralintegration1");

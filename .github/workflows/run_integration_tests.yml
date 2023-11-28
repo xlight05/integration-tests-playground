@@ -79,6 +79,8 @@ jobs:
         env:
           WORKING_DIR: tests/integration_tests/test_suite
           BALLERINA_DEV_CENTRAL: true
+          API_URL : https://api.dev-central.ballerina.io
+          DOCS_URL : https://dev-central.ballerina.io
         with:
           args:
             test
@@ -167,6 +169,8 @@ jobs:
         env:
           WORKING_DIR: tests/integration_tests/test_suite
           BALLERINA_STAGE_CENTRAL: true
+          API_URL : https://api.staging-central.ballerina.io
+          DOCS_URL : https://staging-central.ballerina.io
         with:
           args:
             test
@@ -252,6 +256,8 @@ jobs:
         uses: ballerina-platform/ballerina-action@master
         env:
           WORKING_DIR: tests/integration_tests/test_suite
+          API_URL : https://api.central.ballerina.io
+          DOCS_URL : https://central.ballerina.io
         with:
           args:
             test

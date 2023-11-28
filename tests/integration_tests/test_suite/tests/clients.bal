@@ -14,10 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/os;
 import ballerina/http;
 
-http:Client centralApiClient = check new ("https://api.dev-central.ballerina.io/2.0/");
-http:Client apiDocsClient = check new ("https://dev-lib.ballerina.io/", followRedirects = {enabled: true, allowAuthHeaders: true});
-http:Client centralClient = check new ("https://dev-central.ballerina.io/", {
+configurable string apiUrl = os:getEnv("API_URL");
+configurable string docsUrl = os:getEnv("DOCS_URL");
+
+http:Client centralApiClient = check new (apiUrl + "/2.0/");
+http:Client apiDocsClient = check new (docsUrl, {
     timeout: 20
 });

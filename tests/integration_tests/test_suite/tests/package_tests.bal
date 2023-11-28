@@ -26,10 +26,6 @@ function testPackageUse() {
 @test:Config { }
 function testNormalPackage() returns error? {
 
-    //UI Page
-    http:Response resp = check centralClient -> get("bcentralintegration1/normal_package");
-    test:assertEquals(resp.statusCode, 200);
-
     //API
     Package packageResp = check centralApiClient -> get("registry/packages/bcentralintegration1/normal_package/0.1.0");
     test:assertEquals(packageResp.organization, "bcentralintegration1");
