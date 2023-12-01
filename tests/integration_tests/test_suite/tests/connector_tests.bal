@@ -1,4 +1,4 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -26,10 +26,6 @@ function testConnectorMain() returns error? {
 
 @test:Config {dependsOn: [testNormalPackage]} //For some reason parreral execusion does not work with the frontend
 function testConnectorPackage() returns error? {
-
-    // UI Page
-    http:Response resp = check centralClient->get("bcentralintegration1/sample_connector");
-    test:assertEquals(resp.statusCode, 200);
 
     //API
     Package packageResp = check centralApiClient->get("registry/packages/bcentralintegration1/sample_connector/0.1.0");

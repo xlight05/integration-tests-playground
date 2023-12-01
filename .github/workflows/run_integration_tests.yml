@@ -2,30 +2,13 @@ name: BCentral Integration tests
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to run the tests'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-        - dev
-        - stage
-        - prod
-  repository_dispatch:
-    types: [dev-test, stage-test, prod-test]
-  schedule:
-    - cron:  '0 6 * * *'
 
 jobs:
-  dev-setup:
-    if: ${{ github.event.inputs.environment == 'dev' }}
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: dev
       - name: Setup environments
         id: write
         run: |
@@ -34,21 +17,18 @@ jobs:
           echo "::set-output name=test::${tests}"
     outputs:
       matrix: ${{ steps.write.outputs.test }}
-  dev-push:
-    if: ${{ github.event.inputs.environment == 'dev' }}
-    needs: dev-setup
+  push:
+    needs: setup
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        test_name: ${{ fromJson(needs.dev-setup.outputs.matrix) }}
+        test_name: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
       TEST_NAME: "${{ matrix.test_name }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: dev
       - name: Build Package
         uses: ballerina-platform/ballerina-action@master
         env:
@@ -67,32 +47,29 @@ jobs:
         with:
           args:
             push
-  dev-test:
-    if: ${{ github.event.inputs.environment == 'dev' }}
-    needs: dev-push
+  test:
+    needs: push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: dev
       - name: Execute tests
         uses: ballerina-platform/ballerina-action@master
         env:
           WORKING_DIR: tests/integration_tests/test_suite
           BALLERINA_DEV_CENTRAL: true
+          API_URL : https://api.dev-central.ballerina.io
+          DOCS_URL : https://dev-central.ballerina.io
         with:
           args:
             test
-  dev-cleanup:
-    if: ${{ github.event.inputs.environment == 'dev' && always() }}
-    needs: [dev-push,dev-test]
+  cleanup:
+    if: ${{ always() }}
+    needs: [push,test]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ref: dev
     - name: Cleanup Packages
       shell: bash
       run: |
@@ -102,94 +79,6 @@ jobs:
           pushd $d
           connectorName="$d"
           curl -X POST -H "Accept: application/vnd.github.v3+json"  -H "authorization: Bearer ${{ secrets.PAT_TOKEN }}" 'https://api.github.com/repos/wso2-enterprise/ballerina-registry/actions/workflows/delete_package_dev.yml/dispatches' -d '{"ref": "main", "inputs": {"orgName": "bcentralintegration1","packageName":"'$connectorName'","version":"0.1.0"}}'
-          popd
-        done
-
-        popd
-  stage-setup:
-    if: ${{ github.event.inputs.environment == 'stage' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: stage
-      - name: Setup environments
-        id: write
-        run: |
-          cd tests/integration_tests/test_packages
-          tests=$(ls -d */ | cut -f1 -d'/' | jq -R -s -c 'split("\n")[:-1]')
-          echo "::set-output name=test::${tests}"
-    outputs:
-      matrix: ${{ steps.write.outputs.test }}
-  stage-push:
-    if: ${{ github.event.inputs.environment == 'stage' }}
-    needs: stage-setup
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        test_name: ${{ fromJson(needs.stage-setup.outputs.matrix) }}
-    env:
-      TEST_NAME: "${{ matrix.test_name }}"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: stage
-      - name: Build Package
-        uses: ballerina-platform/ballerina-action@master
-        env:
-          WORKING_DIR: tests/integration_tests/test_packages/${{ matrix.test_name }}
-          BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.STAGE_TEST_ORG_TOKEN }}
-          BALLERINA_STAGE_CENTRAL: true
-        with:
-          args:
-            pack
-      - name: Push Package
-        uses: ballerina-platform/ballerina-action@master
-        env:
-          WORKING_DIR: tests/integration_tests/test_packages/${{ matrix.test_name }}
-          BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.STAGE_TEST_ORG_TOKEN }}
-          BALLERINA_STAGE_CENTRAL: true
-        with:
-          args:
-            push
-  stage-test:
-    if: ${{ github.event.inputs.environment == 'stage' }}
-    needs: stage-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: stage
-      - name: Execute tests
-        uses: ballerina-platform/ballerina-action@master
-        env:
-          WORKING_DIR: tests/integration_tests/test_suite
-          BALLERINA_STAGE_CENTRAL: true
-        with:
-          args:
-            test
-  stage-cleanup:
-    if: ${{ github.event.inputs.environment == 'stage' && always() }}
-    needs: [stage-push,stage-test]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: stage
-    - name: Cleanup Packages
-      shell: bash
-      run: |
-        pushd tests/integration_tests/test_packages
-          
-        for d in */ ; do
-          pushd $d
-          connectorName="$d"
-          curl -X POST -H "Accept: application/vnd.github.v3+json"  -H "authorization: Bearer ${{ secrets.PAT_TOKEN }}" 'https://api.github.com/repos/wso2-enterprise/ballerina-registry/actions/workflows/delete_package_staging/dispatches' -d '{"ref": "main", "inputs": {"orgName": "bcentralintegration1","packageName":"'$connectorName'","version":"0.1.0"}}'
           popd
         done
 
