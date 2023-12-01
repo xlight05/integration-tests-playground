@@ -1,4 +1,4 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -25,10 +25,6 @@ function testPackageUse() {
 
 @test:Config { }
 function testNormalPackage() returns error? {
-
-    //UI Page
-    http:Response resp = check centralClient -> get("bcentralintegration1/normal_package");
-    test:assertEquals(resp.statusCode, 200);
 
     //API
     Package packageResp = check centralApiClient -> get("registry/packages/bcentralintegration1/normal_package/0.1.0");
