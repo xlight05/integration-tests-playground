@@ -1,5 +1,5 @@
 [package]
-org = "bcentralintegration1"
+org = "bctestorg"
 name = "sample_connector"
 version = "0.1.0"
 authors = ["Ballerina"]

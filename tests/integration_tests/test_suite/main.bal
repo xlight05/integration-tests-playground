@@ -1,4 +1,4 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -15,11 +15,11 @@
 // under the License.
 
 // Use packages pushed in previously pushed packages and implement something.
-import bcentralintegration1/normal_package;
-import bcentralintegration1/sample_connector;
-import bcentralintegration1/sample_connector.module1;
-import bcentralintegration1/sample_connector.module2;
-import bcentralintegration1/sample_trigger;
+import bctestorg/normal_package;
+import bctestorg/sample_connector;
+import bctestorg/sample_connector.module1;
+import bctestorg/sample_connector.module2;
+import bctestorg/sample_trigger;
 
 public function greetAnimal() returns string {
     return "Hello " + normal_package:greet();

@@ -1,7 +1,7 @@
 [package]
 license = ["Apache-2.0"]
 keywords = ["Communication/Team Chat", "Cost/Freemium", "Trigger"]
-org = "bcentralintegration1"
+org = "bctestorg"
 name = "sample_trigger"
 repository = "https://github.com/ballerina-platform/asyncapi-triggers"
 version = "0.1.0"

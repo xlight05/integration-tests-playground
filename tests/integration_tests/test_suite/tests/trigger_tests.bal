@@ -1,4 +1,4 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -786,11 +786,11 @@ function testWebhookNotificationOnIssueAssignment() {
 function testriggerPackage() returns error? {
 
     //API
-    Package packageResp = check centralApiClient -> get("registry/packages/bcentralintegration1/sample_trigger/0.1.0");
-    test:assertEquals(packageResp.organization, "bcentralintegration1");
+    Package packageResp = check centralApiClient -> get("registry/packages/bctestorg/sample_trigger/0.1.0");
+    test:assertEquals(packageResp.organization, "bctestorg");
     test:assertEquals(packageResp.name, "sample_trigger");
     test:assertEquals(packageResp.'version, "0.1.0");
-    test:assertEquals(packageResp.URL, "/bcentralintegration1/sample_trigger/0.1.0");
+    test:assertEquals(packageResp.URL, "/bctestorg/sample_trigger/0.1.0");
     test:assertEquals(packageResp.visibility, "public");
 
     Module[] modules = packageResp.modules;
@@ -801,13 +801,13 @@ function testriggerPackage() returns error? {
 
 @test:Config { }
 function testTriggerApiDocs() returns error? {
-    http:Response resp = check apiDocsClient -> get("bcentralintegration1/sample_trigger/0.1.0");
+    http:Response resp = check apiDocsClient -> get("bctestorg/sample_trigger/0.1.0");
     test:assertEquals(resp.statusCode, 200);
 
-    string[] versions = check centralApiClient -> get("registry/packages/bcentralintegration1/sample_trigger?include-prereleases=true");
+    string[] versions = check centralApiClient -> get("registry/packages/bctestorg/sample_trigger?include-prereleases=true");
     test:assertEquals(versions[0], "0.1.0");
 
-    APIDocResponse apiDocsResp = check centralApiClient -> get("docs/bcentralintegration1/sample_trigger/0.1.0");
+    APIDocResponse apiDocsResp = check centralApiClient -> get("docs/bctestorg/sample_trigger/0.1.0");
 
     ModuleInfo modules = apiDocsResp.docsData.modules[0];
     
@@ -823,7 +823,7 @@ function testTriggerApiDocs() returns error? {
 
 @test:Config { }
 function testTriggerApi() returns error? {
-    TriggerResponse triggerResp = check centralApiClient -> get("registry/triggers?org=bcentralintegration1");
+    TriggerResponse triggerResp = check centralApiClient -> get("registry/triggers?org=bctestorg");
     Trigger[] triggers = triggerResp.triggers;
     test:assertEquals(triggers.length(), 1);
 

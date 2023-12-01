@@ -1,4 +1,4 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -28,11 +28,11 @@ function testConnectorMain() returns error? {
 function testConnectorPackage() returns error? {
 
     //API
-    Package packageResp = check centralApiClient->get("registry/packages/bcentralintegration1/sample_connector/0.1.0");
-    test:assertEquals(packageResp.organization, "bcentralintegration1");
+    Package packageResp = check centralApiClient->get("registry/packages/bctestorg/sample_connector/0.1.0");
+    test:assertEquals(packageResp.organization, "bctestorg");
     test:assertEquals(packageResp.name, "sample_connector");
     test:assertEquals(packageResp.'version, "0.1.0");
-    test:assertEquals(packageResp.URL, "/bcentralintegration1/sample_connector/0.1.0");
+    test:assertEquals(packageResp.URL, "/bctestorg/sample_connector/0.1.0");
     test:assertEquals(packageResp.visibility, "public");
 
     Module[] modules = packageResp.modules;
@@ -45,13 +45,13 @@ function testConnectorPackage() returns error? {
 
 @test:Config {}
 function testConnectorApiDocs() returns error? {
-    http:Response resp = check apiDocsClient->get("bcentralintegration1/sample_connector/0.1.0");
+    http:Response resp = check apiDocsClient->get("bctestorg/sample_connector/0.1.0");
     test:assertEquals(resp.statusCode, 200);
 
-    string[] versions = check centralApiClient->get("registry/packages/bcentralintegration1/sample_connector?include-prereleases=true");
+    string[] versions = check centralApiClient->get("registry/packages/bctestorg/sample_connector?include-prereleases=true");
     test:assertEquals(versions[0], "0.1.0");
 
-    APIDocResponse apiDocsResp = check centralApiClient->get("docs/bcentralintegration1/sample_connector/0.1.0");
+    APIDocResponse apiDocsResp = check centralApiClient->get("docs/bctestorg/sample_connector/0.1.0");
     test:assertEquals(apiDocsResp.searchData.functions[0].id, "testFuncMain");
 
     ModuleInfo modules = apiDocsResp.docsData.modules[0];
@@ -67,7 +67,7 @@ function testConnectorApiDocs() returns error? {
 
 @test:Config {}
 function testConnectorApi() returns error? {
-    ConnectorResponse connectorResp = check centralApiClient->get("registry/connectors?org=bcentralintegration1");
+    ConnectorResponse connectorResp = check centralApiClient->get("registry/connectors?org=bctestorg");
     Connector[] connectors = connectorResp.connectors;
     test:assertEquals(connectors.length(), 2);
 

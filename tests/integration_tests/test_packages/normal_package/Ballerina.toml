@@ -1,5 +1,5 @@
 [package]
-org = "bcentralintegration1"
+org = "bctestorg"
 name = "normal_package"
 version = "0.1.0"
 
